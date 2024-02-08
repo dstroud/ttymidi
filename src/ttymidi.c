@@ -71,7 +71,7 @@ int current_time, last_time;
 static struct argp_option options[] =
 {
 	{"serialdevice" , 's', "DEV" , 0, "Serial device to use. Default = /dev/ttyUSB0" },
-	{"baudrate"     , 'b', "BAUD", 0, "Serial port baud rate. Default = 115200" },
+	{"baudrate"     , 'b', "BAUD", 0, "Serial port baud rate. Default = 38400" },
 	{"verbose"      , 'v', 0     , 0, "For debugging: Produce verbose output" },
 	{"printonly"    , 'p', 0     , 0, "Super debugging: Print values read from serial -- and do nothing else" },
 	{"quiet"        , 'q', 0     , 0, "Don't produce any output, even when the print command is sent" },
@@ -283,6 +283,15 @@ void write_midi_action_to_serial_port(snd_seq_t* seq_handle)
 				if (!arguments.silent && arguments.verbose)
 					printf("Alsa    0x%02X Pitch bend         %03u %5d\n", bytes[0]&0xF0, bytes[0]&0xF, ev->data.control.value);
 				break;
+
+			case SND_SEQ_EVENT_SONGPOSITION:
+				bytes[0] = 0xF2 + ev->data.control.channel;
+				ev->data.control.value += 8192;
+				bytes[1] = (int)ev->data.control.value & 0x7F;
+				bytes[2] = (int)ev->data.control.value >> 7;
+				if (!arguments.silent && arguments.verbose)
+					printf("Alsa    0x%02X Song Position Pointer         %03u %5d\n", bytes[0]&0xF0, bytes[0]&0xF, ev->data.control.value);
+				break;
 				
             case SND_SEQ_EVENT_SYSEX:
                 sysex_len = ev->data.ext.len;
@@ -323,6 +332,7 @@ void write_midi_action_to_serial_port(snd_seq_t* seq_handle)
 			case SND_SEQ_EVENT_CHANPRESS:
 				write(serial, bytes, 2);
 			break;
+			case SND_SEQ_EVENT_SONGPOSITION:
 			
 			case SND_SEQ_EVENT_SYSEX:
 			//sysex addition - wrote this in the case statement
