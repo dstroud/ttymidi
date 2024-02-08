@@ -538,6 +538,7 @@ int get_bytes_expected(int midicommand) {
       case 0xc0: return 1; // patch change
       case 0xd0: return 1; // channel pressure
       case 0xe0: return 1; // pitch bend
+      case 0xf2: return 1; // spp
       case 0xf0: 
 		if (midicommand == 0xF0) return BUF_SIZE - 1; // Sysex
 		else return 0; // Other controller
